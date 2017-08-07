@@ -7,6 +7,19 @@ const keys = require('../config/keys');
 // User is our model class
 const User = mongoose.model('users');
 
+//serializeUser generates a identifing piece of info and is used by passport to produce the cookie
+//user.id is our iser with the unique id from mongo which includes googleId
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+//id is the user.id from serializeUser
+//find a user by id
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => {
+    done(null, user);
+  });
+});
+
 //passport is using the google 0auth20 strategy
 passport.use(
   new GoogleStrategy(
@@ -16,12 +29,18 @@ passport.use(
       callbackURL: '/auth/google/callback' //this is the callback we'll recieve from google
     },
     (accessToken, refreshToken, profile, done) => {
-      //create  a new user wirh googleId and profile id and save it to the database.
-      new User({ googleId: profile.id }).save();
-
-      // console.log('access token', accessToken);
-      // console.log('refresh token', refreshToken);
-      // console.log('profile', profile);
+      User.findOne({ googleId: profile.id }).then(existingUser => {
+        //we have a record of existing user
+        if (existingUser) {
+          done(null, existingUser);
+          //we dont have a record make a record
+        } else {
+          //makes the record
+          new User({ googleId: profile.id })
+            .save()
+            .then(user => done(null, user));
+        }
+      });
     }
   )
 );

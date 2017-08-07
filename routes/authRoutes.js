@@ -13,4 +13,16 @@ module.exports = app => {
   );
 
   app.get('/auth/google/callback', passport.authenticate('google'));
+  console.log('New User Created');
+
+  app.get('/api/logout', (req, res) => {
+    req.logout();
+    res.send(req.user);
+    console.log('logged out');
+  });
+
+  app.get('/api/current_user', (req, res) => {
+    res.send(req.user);
+    console.log(' current user is ', req.user);
+  });
 };
