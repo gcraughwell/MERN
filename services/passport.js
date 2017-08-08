@@ -26,7 +26,8 @@ passport.use(
     {
       clientID: keys.googleClientID, //client id can be shared
       clientSecret: keys.googleClientSecret, //secret can not be shared
-      callbackURL: '/auth/google/callback' //this is the callback we'll recieve from google
+      callbackURL: '/auth/google/callback', //this is the callback we'll recieve from google
+      proxy: true
     },
     (accessToken, refreshToken, profile, done) => {
       User.findOne({ googleId: profile.id }).then(existingUser => {
