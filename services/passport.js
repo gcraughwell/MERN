@@ -27,21 +27,19 @@ passport.use(
       clientID: keys.googleClientID, //client id can be shared
       clientSecret: keys.googleClientSecret, //secret can not be shared
       callbackURL: '/auth/google/callback', //this is the callback we'll recieve from google
-      proxy: true //if google runs through a proxy its cool.
+      proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      User.findOne({ googleId: profile.id }).then(existingUser => {
-        //we have a record of existing user
-        if (existingUser) {
-          done(null, existingUser);
-          //we dont have a record make a record
-        } else {
-          //makes the record
-          new User({ googleId: profile.id })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+    //async await checks if we have a user in the database and if not adds a new record
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id });
+      //we have a record of existing user
+      if (existingUser) {
+        return done(null, existingUser);
+        console.log(existingUser);
+      }
+      //we dont have a record make a record, makes the record!
+      const user = await new User({ googleId: profile.id }).save();
+      done(null, user);
     }
   )
 );

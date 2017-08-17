@@ -11,18 +11,16 @@ module.exports = app => {
       scope: ['profile', 'email']
     })
   );
-
+  //caallback URL for google
   app.get('/auth/google/callback', passport.authenticate('google'));
-  console.log('New User Created');
 
+  //logout of the application
   app.get('/api/logout', (req, res) => {
     req.logout();
     res.send(req.user);
-    console.log('logged out');
   });
-
+  //get the id f
   app.get('/api/current_user', (req, res) => {
     res.send(req.user);
-    console.log(' current user is ', req.user);
   });
 };

@@ -3,6 +3,7 @@ const { Schema } = mongoose; //const Schema = mongoose.Schema; they are the same
 
 const userSchema = new Schema({
   googleId: String
+  // twitterId: String
 });
 
 //loads the schema into mongo
