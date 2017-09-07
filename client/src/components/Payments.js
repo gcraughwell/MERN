@@ -3,6 +3,7 @@ import StripeCheckout from 'react-stripe-checkout';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 
+//React App is the stripe publish key
 class Payments extends Component {
   render() {
     return (
