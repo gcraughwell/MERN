@@ -5,6 +5,7 @@ const cookieSession = require('cookie-session');
 const passport = require('passport');
 const keys = require('./config/keys');
 require('./models/User'); // needs to be above passport
+require('./models/Survey'); // needs to be above passport
 require('./services/passport');
 
 //mongoose to connect via keys mongo URI
@@ -27,6 +28,7 @@ app.use(passport.session());
 //calls authRoutes and the routing
 require('./routes/authRoutes')(app);
 require('./routes/billingRoutes')(app);
+require('./routes/surveyRoutes')(app);
 
 if (process.env.NODE_ENV === 'production') {
   //express will serve up production assets
