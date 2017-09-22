@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const Path = require('path-parser');
+const { URL } = require('url');
 const mongoose = require('mongoose');
 const requireLogin = require('../middlewares/requireLogin');
 const requireCredits = require('../middlewares/requireCredits');
@@ -7,8 +10,56 @@ const surveyTemplate = require('../services/emailTemplates/surveyTemplate');
 const Survey = mongoose.model('surveys');
 
 module.exports = app => {
-  app.get('/api/surveys/thanks', (req, res) => {
+  //find all the surveys made by this user
+  //_user is from the survey model  _user needs to be logged in req.user.id
+  app.get('/api/surveys', requireLogin, async (req, res) => {
+    const surveys = await Survey.find({ _user: req.user.id }).select({
+      recipients: false
+    });
+
+    res.send(surveys);
+  });
+
+  app.get('/api/surveys/:surveyId/:choice', (req, res) => {
     res.send('Thanks for providing feedback');
+  });
+
+  app.post('/api/surveys/webhooks', (req, res) => {
+    const p = new Path('/api/surveys/:surveyId/:choice');
+
+    _.chain(req.body)
+      .map(({ email, url }) => {
+        const match = p.test(new URL(url).pathname);
+        if (match) {
+          return {
+            email,
+            surveyId: match.surveyId,
+            choice: match.choice
+          };
+        }
+      })
+      .compact() //Creates an array with all falsey values removed. The values false, null, 0, "", undefined, and NaN are falsey.
+      .uniqBy('email', 'surveyId') //removes duplicates
+      .each(({ surveyId, email, choice }) => {
+        Survey.updateOne(
+          {
+            _id: surveyId, //_ is mongo
+            recipients: {
+              $elemMatch: { email: email, responded: false } //find email and no response
+            }
+          },
+          {
+            //$inc $set are mongo operators
+            //[choice] will changed to yes or no and increase 1
+            $inc: { [choice]: 1 },
+            //look inside the survey found and the recipients sub document $ lines up with $elemMatch
+            $set: { 'recipients.$.responded': true },
+            lastResponded: new Date()
+          }
+        ).exec(); //exec is needed to execute the function
+      })
+      .value(); //new array and we assign to events
+    res.send({});
   });
 
   app.post('/api/surveys', requireLogin, requireCredits, async (req, res) => {

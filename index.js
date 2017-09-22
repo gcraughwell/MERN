@@ -9,7 +9,7 @@ require('./models/Survey'); // needs to be above passport
 require('./services/passport');
 
 //mongoose to connect via keys mongo URI
-mongoose.connect(keys.mongoURI);
+mongoose.connect(keys.mongoURI, { useMongoClient: true });
 
 const app = express();
 
